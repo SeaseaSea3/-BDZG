@@ -6,6 +6,30 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
+    path: Assets/Scenes/QTE.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/Operate.unity
+    guid: ae871b2101d3f464aa74e603b5728426
+  - enabled: 1
+    path: Assets/Scenes/BoneGame.unity
+    guid: ea9df087d85d291488c499be801ee12f
+  - enabled: 1
+    path: Assets/Scenes/EyeGame.unity
+    guid: 81765111c16dc9142847053e12d38f87
+  - enabled: 1
+    path: Assets/Scenes/HookGame.unity
+    guid: 88d6b1984afa6554db35c3b08d311af8
+  - enabled: 1
+    path: Assets/Scenes/MazeGame.unity
+    guid: 9fe78ed50558ac044a3a3464839ce398
+  - enabled: 1
+    path: Assets/Scenes/NO.unity
+    guid: f47b403821439ee41a949bb0520d4920
+  - enabled: 1
+    path: Assets/Scenes/Operation.unity
+    guid: e972bc856d7090344a943ffbf2c82042
+  - enabled: 1
+    path: Assets/Scenes/ScrubGame.unity
+    guid: 8dbb7fc03e3097a4396ea5ac5d2a81c3
   m_configObjects: {}
