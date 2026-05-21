@@ -60,10 +60,39 @@ public class PuzzleManager : MonoBehaviour
     // 检查胜利
     public void CheckWin()
     {
+<<<<<<< Updated upstream
         foreach (Piece p in pieces)
         {
             if (!p.IsCorrect())
                 return;
+=======
+        if (gameOver)
+        {
+            return;
+        }
+
+        if (AllCorrect())
+        {
+            gameOver = true;
+
+            Debug.Log("游戏结束：所有拼图都旋转回原来的角度！");
+
+            for (int i = 0; i < pieces.Length; i++)
+            {
+                pieces[i].SetSelected(false);
+            }
+
+            MiniGameFinish finish = FindObjectOfType<MiniGameFinish>();
+
+            if (finish != null)
+            {
+                finish.FinishMiniGame();
+            }
+            else
+            {
+                Debug.LogError("场景中没有 MiniGameFinish，无法完成小游戏跳转！");
+            }
+>>>>>>> Stashed changes
         }
 
         Win();
