@@ -20,42 +20,59 @@ public class QTEController : MonoBehaviour
 
     private Tween loopTween;
 
-    // ⭐ 新增
     private KeyCode[] sequence;
     private int currentIndex;
     private RectTransform arrowRect;
 
-    // ⭐ 一行位置（4个）
     private Vector2[] positions;
+
+    [Header("主界面，可不填")]
     public GameObject mainUI;
 
     void Start()
     {
-        gameObject.SetActive(false);
-
         arrowRect = arrowImage.GetComponent<RectTransform>();
 
-        // ⭐ 一行4个位置（你可以自己调）
         positions = new Vector2[]
         {
-        new Vector2(-300, 0),
-        new Vector2(-100, 0),
-        new Vector2(100, 0),
-        new Vector2(300, 0)
+            new Vector2(-300, 0),
+            new Vector2(-100, 0),
+            new Vector2(100, 0),
+            new Vector2(300, 0)
         };
+
+        // 不需要点击开始，进入场景后自动开始
+        StartQTE();
     }
 
     public void StartQTE()
     {
         gameObject.SetActive(true);
 
-        isActive = true;
-        resultText.text = "";
+        if (mainUI != null)
+        {
+            mainUI.SetActive(false);
+        }
 
-        GenerateSequence();   // ⭐生成4个按键
+        isActive = true;
+
+        if (resultText != null)
+        {
+            resultText.text = "";
+        }
+
+        if (arrowImage != null)
+        {
+            arrowImage.color = Color.white;
+            arrowImage.DOKill();
+            arrowImage.transform.DOKill();
+            arrowImage.transform.localScale = Vector3.one;
+        }
+
+        GenerateSequence();
         currentIndex = 0;
 
-        ShowArrow();          // ⭐显示第一个
+        ShowArrow();
         ResetTimer();
 
         PlayShowAnim();
@@ -69,16 +86,17 @@ public class QTEController : MonoBehaviour
         timer -= Time.deltaTime;
 
         if (timerBar != null)
+        {
             timerBar.fillAmount = timer / maxTime;
+        }
 
-        // 输入检测
         if (Input.anyKeyDown)
         {
             PlayPressAnim();
 
             if (Input.GetKeyDown(sequence[currentIndex]))
             {
-                NextStep();  // ⭐改这里
+                NextStep();
             }
             else
             {
@@ -86,26 +104,24 @@ public class QTEController : MonoBehaviour
             }
         }
 
-        // 超时
         if (timer <= 0)
         {
             Fail();
         }
 
-        // 快结束闪红（避免重复叠加）
         if (timer < 1f && arrowImage != null)
         {
-            arrowImage.DOKill(); // ⭐防止叠加动画
+            arrowImage.DOKill();
             arrowImage.DOColor(Color.red, 0.2f).SetLoops(-1, LoopType.Yoyo);
         }
     }
 
-    // ⭐生成4个方向
     void GenerateSequence()
     {
         sequence = new KeyCode[4];
 
-        KeyCode[] keys = {
+        KeyCode[] keys =
+        {
             KeyCode.UpArrow,
             KeyCode.DownArrow,
             KeyCode.LeftArrow,
@@ -118,27 +134,35 @@ public class QTEController : MonoBehaviour
         }
     }
 
-    // ⭐显示当前箭头
     void ShowArrow()
     {
         KeyCode key = sequence[currentIndex];
 
         switch (key)
         {
-            case KeyCode.UpArrow: arrowImage.sprite = up; break;
-            case KeyCode.DownArrow: arrowImage.sprite = down; break;
-            case KeyCode.LeftArrow: arrowImage.sprite = left; break;
-            case KeyCode.RightArrow: arrowImage.sprite = right; break;
+            case KeyCode.UpArrow:
+                arrowImage.sprite = up;
+                break;
+
+            case KeyCode.DownArrow:
+                arrowImage.sprite = down;
+                break;
+
+            case KeyCode.LeftArrow:
+                arrowImage.sprite = left;
+                break;
+
+            case KeyCode.RightArrow:
+                arrowImage.sprite = right;
+                break;
         }
 
         arrowImage.color = Color.white;
 
-        // ⭐ 核心：移动到对应位置（横排）
         arrowRect.DOAnchorPos(positions[currentIndex], 0.2f)
                  .SetEase(Ease.OutBack);
     }
 
-    // ⭐进入下一步
     void NextStep()
     {
         currentIndex++;
@@ -156,9 +180,12 @@ public class QTEController : MonoBehaviour
     void ResetTimer()
     {
         timer = maxTime;
-    }
 
-    // ===== 动画 =====
+        if (timerBar != null)
+        {
+            timerBar.fillAmount = 1f;
+        }
+    }
 
     void PlayShowAnim()
     {
@@ -175,7 +202,9 @@ public class QTEController : MonoBehaviour
     void PlayLoopAnim()
     {
         if (loopTween != null)
+        {
             loopTween.Kill();
+        }
 
         loopTween = arrowImage.transform
             .DOScale(1.1f, 0.6f)
@@ -192,14 +221,14 @@ public class QTEController : MonoBehaviour
             });
     }
 
-    // ===== 结果 =====
-
     void Success()
     {
         isActive = false;
 
         if (loopTween != null)
+        {
             loopTween.Kill();
+        }
 
         resultText.text = "手术成功！";
         arrowImage.color = Color.green;
@@ -209,13 +238,9 @@ public class QTEController : MonoBehaviour
             .OnComplete(() =>
             {
                 arrowImage.DOFade(0, 0.3f);
-<<<<<<< Updated upstream
-                Invoke("CloseQTE", 1f);
-=======
 
             // 等 1 秒后自动完成小游戏，回血并返回主界面
             Invoke(nameof(FinishMiniGame), 1f);
->>>>>>> Stashed changes
             });
     }
 
@@ -241,7 +266,9 @@ public class QTEController : MonoBehaviour
         isActive = false;
 
         if (loopTween != null)
+        {
             loopTween.Kill();
+        }
 
         resultText.text = "手术失败！";
         arrowImage.color = Color.red;
@@ -251,16 +278,12 @@ public class QTEController : MonoBehaviour
             .OnComplete(() =>
             {
                 arrowImage.DOFade(0, 0.3f);
-                Invoke("CloseQTE", 1f);
+                Invoke(nameof(CloseQTE), 1f);
             });
     }
 
     void CloseQTE()
     {
         gameObject.SetActive(false);
-
-        // ⭐恢复主界面
-        if (mainUI != null)
-            mainUI.SetActive(true);
     }
 }
