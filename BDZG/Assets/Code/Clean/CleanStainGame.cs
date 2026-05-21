@@ -165,6 +165,11 @@ public class CleanStainGame : MonoBehaviour
 
     void GameClear()
     {
+        if (gameFinished)
+        {
+            return;
+        }
+
         gameFinished = true;
 
         if (resultText != null)
@@ -177,5 +182,20 @@ public class CleanStainGame : MonoBehaviour
         cottonBall.DOPunchScale(Vector3.one * 0.25f, 0.3f, 6);
 
         Debug.Log("污渍全部清理完成");
+
+        // 等 1 秒，让玩家看到“清理完成！”后再跳转
+        DOVirtual.DelayedCall(1f, () =>
+        {
+            MiniGameFinish finish = FindObjectOfType<MiniGameFinish>();
+
+            if (finish != null)
+            {
+                finish.FinishMiniGame();
+            }
+            else
+            {
+                Debug.LogError("场景中没有 MiniGameFinish，无法完成小游戏跳转！");
+            }
+        });
     }
 }
