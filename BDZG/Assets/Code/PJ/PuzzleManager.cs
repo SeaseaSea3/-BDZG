@@ -186,6 +186,11 @@ public class PuzzleManager : MonoBehaviour
 
     private void CheckFinish()
     {
+        if (gameOver)
+        {
+            return;
+        }
+
         if (AllCorrect())
         {
             gameOver = true;
@@ -195,6 +200,17 @@ public class PuzzleManager : MonoBehaviour
             for (int i = 0; i < pieces.Length; i++)
             {
                 pieces[i].SetSelected(false);
+            }
+
+            MiniGameFinish finish = FindObjectOfType<MiniGameFinish>();
+
+            if (finish != null)
+            {
+                finish.FinishMiniGame();
+            }
+            else
+            {
+                Debug.LogError("场景中没有 MiniGameFinish，无法完成小游戏跳转！");
             }
         }
     }

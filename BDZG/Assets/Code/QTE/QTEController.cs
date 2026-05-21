@@ -238,9 +238,26 @@ public class QTEController : MonoBehaviour
             .OnComplete(() =>
             {
                 arrowImage.DOFade(0, 0.3f);
-                Invoke(nameof(CloseQTE), 1f);
+
+            // 等 1 秒后自动完成小游戏，回血并返回主界面
+            Invoke(nameof(FinishMiniGame), 1f);
             });
     }
+
+    void FinishMiniGame()
+    {
+        MiniGameFinish finish = FindObjectOfType<MiniGameFinish>();
+
+        if (finish != null)
+        {
+            finish.FinishMiniGame();
+        }
+        else
+        {
+            Debug.LogError("场景中没有 MiniGameFinish，无法完成小游戏跳转！");
+        }
+    }
+
 
     void Fail()
     {

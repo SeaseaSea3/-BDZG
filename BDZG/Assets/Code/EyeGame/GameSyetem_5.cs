@@ -285,11 +285,29 @@ public class GameSystem : MonoBehaviour
 
     private void CheckGameComplete()
     {
+        if (!gameActive)
+        {
+            return;
+        }
+
         if (leftCompleted && rightCompleted)
         {
             gameActive = false;
+
             Debug.Log("游戏通关！");
+
             onGameComplete?.Invoke();
+
+            MiniGameFinish finish = FindObjectOfType<MiniGameFinish>();
+
+            if (finish != null)
+            {
+                finish.FinishMiniGame();
+            }
+            else
+            {
+                Debug.LogError("场景中没有 MiniGameFinish，无法完成小游戏跳转！");
+            }
         }
     }
 

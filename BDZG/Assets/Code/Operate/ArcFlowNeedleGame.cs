@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using DG.Tweening;
+using UnityEngine.SceneManagement;
 
 public class ArcFlowNeedleGame : MonoBehaviour
 {
@@ -254,6 +255,12 @@ public class ArcFlowNeedleGame : MonoBehaviour
         Debug.Log("小游戏完成");
 
         onGameComplete?.Invoke();
+
+        // 延迟 1 秒后跳回主界面
+        DOVirtual.DelayedCall(1f, () =>
+        {
+            SceneManager.LoadScene("Operate");
+        });
     }
 
     public void RestartGame()
