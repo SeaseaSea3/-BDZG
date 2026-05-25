@@ -2,190 +2,70 @@ using UnityEngine;
 
 public class PuzzleManager : MonoBehaviour
 {
-    [Header("五个拼图块")]
-    public HexPuzzlePiece[] pieces;
+    public static PuzzleManager Instance;
 
-    [Header("开局是否随机旋转角度")]
-    public bool randomRotationOnStart = true;
+    [Header("拼图块")]
+    public Piece[] pieces;
 
-    private int selectedIndex = 0;
-    private bool gameOver = false;
+    [Header("目标位置")]
+    public Transform[] positions;
+
+    [Header("胜利UI（可选）")]
+    public GameObject winPanel;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     void Start()
     {
-        if (randomRotationOnStart)
-        {
-            RandomRotateAllPieces();
-        }
-
-        SelectPiece(0);
+        Shuffle();
+    }
+    void OnEnable()
+    {
+        Shuffle();
     }
 
-    void Update()
+    // 打乱拼图
+    void Shuffle()
     {
-        if (gameOver)
+        // 生成随机位置索引
+        int[] indexArr = new int[] { 0, 1, 2, 3 };
+
+        // Fisher-Yates 洗牌
+        for (int i = 0; i < indexArr.Length; i++)
         {
-            return;
+            int rand = Random.Range(i, indexArr.Length);
+            int temp = indexArr[i];
+            indexArr[i] = indexArr[rand];
+            indexArr[rand] = temp;
         }
 
-        HandleSelectInput();
-        HandleRotateInput();
-    }
-
-    private void RandomRotateAllPieces()
-    {
-        foreach (HexPuzzlePiece piece in pieces)
-        {
-            piece.RandomRotation();
-        }
-    }
-
-    private void HandleSelectInput()
-    {
-        if (Input.GetKeyDown(KeyCode.W))
-        {
-            MoveSelection(Vector2.up);
-        }
-
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            MoveSelection(Vector2.down);
-        }
-
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            MoveSelection(Vector2.left);
-        }
-
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            MoveSelection(Vector2.right);
-        }
-    }
-
-    private void HandleRotateInput()
-    {
-        if (pieces == null || pieces.Length == 0)
-        {
-            return;
-        }
-
-        HexPuzzlePiece currentPiece = pieces[selectedIndex];
-
-        if (currentPiece.IsRotating())
-        {
-            return;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            currentPiece.RotateLeft(CheckFinish);
-        }
-
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            currentPiece.RotateRight(CheckFinish);
-        }
-    }
-
-    private void MoveSelection(Vector2 direction)
-    {
-        int nextIndex = selectedIndex;
-
-        /*
-            Piece0        Piece3
-
-                   Piece2
-
-            Piece1        Piece4
-        */
-
-        if (selectedIndex == 0)
-        {
-            if (direction == Vector2.down)
-            {
-                nextIndex = 1;
-            }
-            else if (direction == Vector2.right)
-            {
-                nextIndex = 2;
-            }
-        }
-        else if (selectedIndex == 1)
-        {
-            if (direction == Vector2.up)
-            {
-                nextIndex = 0;
-            }
-            else if (direction == Vector2.right)
-            {
-                nextIndex = 2;
-            }
-        }
-        else if (selectedIndex == 2)
-        {
-            if (direction == Vector2.left)
-            {
-                nextIndex = 0;
-            }
-            else if (direction == Vector2.right)
-            {
-                nextIndex = 3;
-            }
-            else if (direction == Vector2.down)
-            {
-                nextIndex = 1;
-            }
-            else if (direction == Vector2.up)
-            {
-                nextIndex = 0;
-            }
-        }
-        else if (selectedIndex == 3)
-        {
-            if (direction == Vector2.down)
-            {
-                nextIndex = 4;
-            }
-            else if (direction == Vector2.left)
-            {
-                nextIndex = 2;
-            }
-        }
-        else if (selectedIndex == 4)
-        {
-            if (direction == Vector2.up)
-            {
-                nextIndex = 3;
-            }
-            else if (direction == Vector2.left)
-            {
-                nextIndex = 2;
-            }
-        }
-
-        SelectPiece(nextIndex);
-    }
-
-    private void SelectPiece(int index)
-    {
-        if (pieces == null || pieces.Length == 0)
-        {
-            return;
-        }
-
+        // 分配位置 + 随机旋转
         for (int i = 0; i < pieces.Length; i++)
         {
-            pieces[i].SetSelected(false);
+            int posIndex = indexArr[i];
+
+            pieces[i].SetPosition(posIndex, positions[posIndex].position);
+
+            int rot = Random.Range(0, 4) * 90;
+            pieces[i].SetRotation(rot);
         }
 
-        selectedIndex = Mathf.Clamp(index, 0, pieces.Length - 1);
-
-        pieces[selectedIndex].SetSelected(true);
+        if (winPanel != null)
+            winPanel.SetActive(false);
     }
 
-    private void CheckFinish()
+    // 检查胜利
+    public void CheckWin()
     {
+<<<<<<< Updated upstream
+        foreach (Piece p in pieces)
+        {
+            if (!p.IsCorrect())
+                return;
+=======
         if (gameOver)
         {
             return;
@@ -212,19 +92,25 @@ public class PuzzleManager : MonoBehaviour
             {
                 Debug.LogError("场景中没有 MiniGameFinish，无法完成小游戏跳转！");
             }
+>>>>>>> Stashed changes
         }
+
+        Win();
     }
 
-    private bool AllCorrect()
+    void Win()
     {
-        foreach (HexPuzzlePiece piece in pieces)
-        {
-            if (!piece.IsCorrect())
-            {
-                return false;
-            }
-        }
+        Debug.Log("拼图完成！");
 
-        return true;
+        if (winPanel != null)
+            winPanel.SetActive(true);
+
+        // 延迟退出（更自然）
+        Invoke("ExitGame", 1.5f);
+    }
+
+    void ExitGame()
+    {
+        UIManager.Instance.ExitPuzzle();
     }
 }
