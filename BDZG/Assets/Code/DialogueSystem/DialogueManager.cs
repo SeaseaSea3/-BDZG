@@ -7,11 +7,13 @@ public class DialogueManager : MonoBehaviour
     public static DialogueManager Instance { get; private set; }
 
     private DialogueNode currentNode;
+    private DialogueSessionContext sessionContext;
 
-    /// <summary>�Ƿ��жԻ����ڽ��У����ȴ���ҵ������ѡ���</summary>
+    /// <summary>是否有对话正在进行（含等待玩家点选选项）。</summary>
     public bool IsDialogueActive => currentNode != null;
 
-    // �¼����� UI ������������ʾ
+    public DialogueSessionContext CurrentSession => sessionContext;
+
     public event Action<DialogueNode> OnDialogueStarted;
     public event Action<DialogueNode> OnDialogueUpdated;
     public event Action<List<DialogueOption>> OnOptionsReady;
@@ -25,12 +27,17 @@ public class DialogueManager : MonoBehaviour
 
     public void StartDialogue(DialogueNode startNode)
     {
+        StartDialogue(startNode, new DialogueSessionContext());
+    }
+
+    public void StartDialogue(DialogueNode startNode, DialogueSessionContext context)
+    {
+        sessionContext = context ?? new DialogueSessionContext();
         currentNode = startNode;
         OnDialogueStarted?.Invoke(currentNode);
         ShowCurrentNode();
     }
 
-    /// <summary>����������ǰ�Ի������� OnDialogueEnded��������ǰ�жԻ�ʱ����</summary>
     public void StopDialogue()
     {
         if (currentNode == null)
@@ -46,12 +53,12 @@ public class DialogueManager : MonoBehaviour
             return;
         }
 
+        DialogueEffectRouter.ApplyNodeEnterEffects(currentNode, sessionContext);
+
         OnDialogueUpdated?.Invoke(currentNode);
 
         if (currentNode.options != null && currentNode.options.Count > 0)
-        {
             OnOptionsReady?.Invoke(currentNode.options);
-        }
     }
 
     public void Advance()
@@ -64,7 +71,7 @@ public class DialogueManager : MonoBehaviour
         }
         else if (currentNode.options != null && currentNode.options.Count > 0)
         {
-            // ����ʾѡ��ȴ����ѡ��
+            // 有选项，等待玩家选择
         }
         else
         {
@@ -77,7 +84,10 @@ public class DialogueManager : MonoBehaviour
         if (currentNode == null || currentNode.options == null || optionIndex >= currentNode.options.Count)
             return;
 
-        var target = currentNode.options[optionIndex].targetNode;
+        var option = currentNode.options[optionIndex];
+        DialogueEffectRouter.ApplyOptionEffects(option, sessionContext, currentNode, optionIndex);
+
+        var target = option.targetNode;
         if (target != null)
         {
             currentNode = target;
@@ -91,7 +101,9 @@ public class DialogueManager : MonoBehaviour
 
     private void EndDialogue()
     {
+        DialogueEffectRouter.FlushAfterDialogue(sessionContext);
         currentNode = null;
+        sessionContext = null;
         OnDialogueEnded?.Invoke();
     }
 }

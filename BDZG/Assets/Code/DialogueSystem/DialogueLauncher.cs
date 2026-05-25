@@ -71,7 +71,7 @@ public class DialogueLauncher : MonoBehaviour
         DialogueBegan?.Invoke();
         onDialogueBegan?.Invoke();
 
-        DialogueManager.Instance.StartDialogue(startNode);
+        DialogueManager.Instance.StartDialogue(startNode, DialogueSessionContext.ForLauncher());
     }
 
     /// <summary>打断当前对话（若由本 Launcher 开启，仍会收到一次结束回调）。</summary>

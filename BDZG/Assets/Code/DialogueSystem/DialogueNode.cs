@@ -12,6 +12,16 @@ public class DialogueNode : ScriptableObject
     [TextArea(3, 5)] public string dialogueText;
     public List<DialogueOption> options;
     public DialogueNode nextNode; // 线性跳转（无选项时使用）
+
+    [Tooltip("进入本节点时执行的效果（可选）")]
+    public List<DialogueEffectBinding> onEnter;
+}
+
+[System.Serializable]
+public class DialogueEffectBinding
+{
+    public DialogueEffectChannel channel = DialogueEffectChannel.Narrative;
+    public DialogueEffect effect;
 }
 
 [System.Serializable]
@@ -24,6 +34,7 @@ public class DialogueOption
     public GameObject optionButtonPrefab;
 
     public DialogueNode targetNode;
-    // 可扩展条件变量（比如需要某物品）
-    // public string requiredItemID;
+
+    [Tooltip("确认本选项后执行的效果（PolicePatrol 仅联系人入口对话生效）")]
+    public List<DialogueEffectBinding> onSelect;
 }

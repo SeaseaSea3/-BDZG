@@ -22,7 +22,13 @@ public class DialogueUI : MonoBehaviour
     private void Start()
     {
         gameObject.SetActive(false);
-        continueButton.onClick.AddListener(OnContinueClicked);
+        if (continueButton != null)
+            continueButton.onClick.AddListener(OnContinueClicked);
+        else
+            Debug.LogWarning("[DialogueUI] Continue Button 未绑定，无选项节点将无法继续。");
+
+        if (DialogueManager.Instance == null)
+            return;
 
         DialogueManager.Instance.OnDialogueStarted += OnDialogueStarted;
         DialogueManager.Instance.OnDialogueUpdated += OnDialogueUpdated;
@@ -34,16 +40,22 @@ public class DialogueUI : MonoBehaviour
     {
         gameObject.SetActive(true);
         ClearOptions();
-        continueButton.gameObject.SetActive(false);
+        if (continueButton != null)
+            continueButton.gameObject.SetActive(false);
     }
 
     private void OnDialogueUpdated(DialogueNode node)
     {
-        speakerNameText.text = node.speakerName;
-        dialogText.text = node.dialogueText;
+        if (speakerNameText != null)
+            speakerNameText.text = node.speakerName;
+        if (dialogText != null)
+            dialogText.text = node.dialogueText;
         ApplyPortrait(node);
 
         ClearOptions();
+        if (continueButton == null)
+            return;
+
         if (node.options == null || node.options.Count == 0)
             continueButton.gameObject.SetActive(true);
         else

@@ -113,8 +113,10 @@ DialogueManager.Instance.StartDialogue(startNode);
 
 | 文件 | 说明 |
 |------|------|
-| `DialogueNode.cs` | 节点与选项数据结构 + CreateAssetMenu |
-| `DialogueManager.cs` | 流程与事件 |
+| `DialogueNode.cs` | 节点与选项数据结构 + 效果绑定 |
+| `DialogueManager.cs` | 流程、会话上下文与选项效果 |
+| `DialogueSessionContext.cs` | 入口来源（联系人/来电等） |
+| `DialogueEffectRouter.cs` | 按通道执行效果 |
 | `DialogueUI.cs` | UI 与选项实例化 |
 | `DialogueLauncher.cs` | 对外入口、`Begin` / `Stop`、事件 |
 | `CharacterPortraitDatabase.cs` | 角色 ID → 立绘 |
@@ -135,3 +137,114 @@ DialogueManager.Instance.StartDialogue(startNode);
 3. **场景缺少 `EventSystem`**，或 **Canvas 未启用 `Graphic Raycaster`**（本场景的 DialogueUI Canvas 已带 Raycaster，勿删）。
 
 4. **全屏 Image 打开 Raycast Target** 且盖在上层，会挡住点击；可调层级或关闭该 Image 的 Raycast Target。
+
+---
+
+## 10. BB 机系统（BBPhone）— 需你本人在 Unity 里操作的部分
+
+**原则：代码不会在运行时生成任何 UI 或按钮。** 所有 Image、Button、TMP 请你在场景或 Prefab 里摆好，再拖引用；贴图、Sprite、Animator、音效均由你在 Inspector 替换。
+
+### 10.1 Project 里 Create 资源（拖数据，不写代码）
+
+| 菜单 | 用途 |
+|------|------|
+| **BBPhone → Contact Profile** | 一个联系人：名字、列表头像 Sprite、默认 `DialogueNode` |
+| **BBPhone → Contact Database** | 把多个 Contact Profile **拖进列表** |
+| **BBPhone → General Incoming Pool** | 与监控无关的随机来电：拖多个 `DialogueNode` 根 |
+| **BBPhone → Monitor Incoming Config** | 按客人总数/特殊客人数区间匹配：每条拖一个 `DialogueNode` |
+| **BBPhone → UI Theme** | 选项槽 **未选中/选中** 背景 Sprite（可再加联系人高亮 Sprite） |
+| **Dialogue → DialogueNode** | 对话内容与选项（每节点 **最多 2 个 Option**） |
+
+### 10.2 场景 Hierarchy（你要自己搭 UI）
+
+建议结构（名称随意，引用拖对即可）：
+
+```
+Canvas（常驻 Active，不要拖给 bbMachineRoot）
+├── Ring / RingButtonView   ← 仅来电响铃时显示；打开 BB 机后隐藏，直至下次 TriggerIncomingCall
+└── BBMachineRoot           ← 拖给 BBPhoneController.bbMachineRoot
+    ├── ContactListPanel    ← ContactListView（联系人界面）
+│   │   ├── ContactName     TMP
+│   │   ├── ContactAddress  TMP（住所）
+│   │   ├── ContactPhone    TMP（电话）
+│   │   ├── ContactIcon     Image（头像）
+│   │   ├── BtnUp / BtnDown / BtnConfirm / BtnExit   Button + 自换 Image 贴图
+│   └── DialoguePanel       ← BBDialogueView（对话界面）
+│       ├── SpeakerName     TMP
+│       ├── DialogueLine    TMP（一行正文）
+│       ├── OptionsRow
+│       │   ├── Option0Bg   Image + SpriteStateImage + Option0Text TMP
+│       │   └── Option1Bg   Image + SpriteStateImage + Option1Text TMP
+│       └── BtnUp / BtnDown / BtnConfirm / BtnExit（须在 bbMachineRoot 子树下）
+```
+
+**你要换贴图的地方：**
+
+- 所有 **Button** 下的 **Image**：在 Inspector 换 Sprite（Up/Down/Confirm/Exit/响铃）。
+- **RingButtonView**：`Idle Sprite`、`Ringing Sprite`；可选 **Animator**、**AudioSource**（铃声循环）。
+- **BBPhoneUITheme** 资源：`optionSlotNormal` / `optionSlotSelected`（两个选项槽背景）。
+- **ContactProfile** 每条：`listIcon`（联系人头像 Sprite）。
+- **BBDialogueView** 的 `portraitImage`：立绘来自 `CharacterPortraitDatabase`（可选）。
+
+### 10.3 场景组件挂载与拖引用
+
+| 物体 | 组件 | 你要拖的内容 |
+|------|------|----------------|
+| 常驻 | **DialogueManager** | 仅一个 |
+| 常驻 | **MonitorGuestProviderStub** | 测试用假 `Total/Special` 人数；监控接好后换 **MonitorGuestProviderLive** |
+| 常驻 | **IncomingCallResolver** | Stub/Live、`GeneralIncomingPool`、`MonitorIncomingConfig` |
+| BBPhoneRoot | **BBPhoneController** | `bbMachineRoot`（仅 BBMachineRoot）、`ringButtonRoot`（Ring）、三个 View、`ContactDatabase`、`IncomingCallResolver`；**Legacy Dialogue UI** 拖旧 DialogueUI 并禁用 |
+| ContactListPanel | **ContactListView** | Database、Theme、4 个 Button、姓名/住所/电话 TMP、头像 Image |
+| DialoguePanel | **BBDialogueView** | Theme、2 选项槽、4 个 Button、TMP |
+| RingButton | **RingButtonView** | Button、Image、idle/ringing Sprite、Animator、AudioSource |
+
+**BBPhoneController** 上把 **Legacy Dialogue UI** 指向旧 `DialogueUI` 物体，避免和 BB 对话界面重复显示。
+
+### 10.4 操作逻辑（已实现，无需再写）
+
+- **Tab** 或 **响铃按钮（不响铃时）**：打开 BB 联系人列表。
+- **响铃中** Tab / 点 Ring：接听 → 打开 BB 机并**直接进入对话**（不经过联系人页）。
+- **Idle 时点 Ring**：若无待接来电则先解析来电稿，同样打开 BB 机并直接进对话。
+- **BB 已打开时来电**：直接进对话（调 `TriggerIncomingCall()`）。
+- **对话结束**：自动关 BB 机面板。
+- 联系人 **Up/Down**：循环切换（在首尾会绕回）；**Confirm** 进入该联系人 `defaultStartNode`。
+- 对话 **Up/Down**：在两个选项间切换高亮；**Confirm** 确认或继续。
+
+### 10.5 测试来电
+
+- 挂 **BBPhoneIncomingTestButton**，Button OnClick → `TriggerIncomingCall()`；或代码调 `BBPhoneController.TriggerIncomingCall()`。
+- 在 **MonitorGuestProviderStub** 改 `Stub Total/Special Guests`，配合 **Monitor Incoming Config** 条目区间测试监控相关对话。
+
+### 10.6 监控同事接入后
+
+只需：实现 **IMonitorGuestProvider**（或改 **MonitorGuestProviderLive**），替换 Stub；**GeneralIncomingPool / MonitorIncomingConfig / ContactDatabase 不用改**，继续拖 `DialogueNode` 即可。
+
+### 10.7 选项效果（PolicePatrol / 结局 / 场景）
+
+- 在 **DialogueNode** 的每个 **Option → On Select** 里添加 `Dialogue Effect Binding`：选 **Channel** + 拖入效果资源（Project 右键 **Dialogue → Effects → …**）。
+- **PolicePatrol**：仅 **联系人入口** 对话执行，调用 `IPolicePatrolDialogueActions`（巡逻程序实现；测试可挂 `PolicePatrolDialogueActionsStub`）。
+- **Narrative**：任意入口；`Game Over` 效果会在 Console 打 `gameover (endingId)`。
+- **Scene**：`Load Scene` 可选立即加载或对话结束后加载（`SceneDialogueActionsDefault`）。
+- 场景需有 **DialogueEffectServices**（与 DialogueManager 同物体或任意常驻物体），Inspector 拖入三个实现组件（或使用同物体上的 Default / Stub）。
+
+### 10.8 BB 相关脚本一览
+
+| 路径 | 说明 |
+|------|------|
+| `Integration/IMonitorGuestProvider.cs` | 监控读接口（来电选根） |
+| `Integration/IPolicePatrolDialogueActions.cs` | 巡逻/监控写接口（联系人选项） |
+| `Integration/PolicePatrolDialogueActionsStub.cs` | 巡逻占位 |
+| `Integration/INarrativeDialogueActions.cs` | 结局 / GameOver |
+| `Integration/ISceneDialogueActions.cs` | 切场景 |
+| `Integration/MonitorGuestProviderStub.cs` | 假数据 |
+| `Integration/MonitorGuestProviderLive.cs` | 正式接入空壳 |
+| `Effects/*` | GameOver / LoadScene / PolicePatrol 等资源 |
+| `DialogueEffectServices.cs` | 聚合接口 |
+| `Data/*` | Contact / Pool / MonitorConfig / UITheme |
+| `BBPhone/BBPhoneController.cs` | 总控 |
+| `BBPhone/ContactListView.cs` | 联系人 UI |
+| `BBPhone/BBDialogueView.cs` | 对话 UI（不 Instantiate） |
+| `BBPhone/RingButtonView.cs` | 响铃按钮 |
+| `BBPhone/IncomingCallResolver.cs` | 随机/监控解析 |
+| `BBPhone/SpriteStateImage.cs` | 选项槽选中换 Sprite |
+| `BBPhone/BBPhoneIncomingTestButton.cs` | 测试来电 |
