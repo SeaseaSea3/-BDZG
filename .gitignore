@@ -97,3 +97,9 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# TMP 生成的大体积 SDF（本地保留，用 .ttf 重新 Generate；勿提交）
+BDZG/Assets/Code/DialogueSystem/Dialogue/Font Microsoft SDF.asset
+BDZG/Assets/Code/DialogueSystem/Dialogue/Font Microsoft SDF.asset.meta
+BDZG/Assets/Code/DialogueSystem/Dialogue/ark-pixel-10px-proportional-zh_cn SDF.asset
+BDZG/Assets/Code/DialogueSystem/Dialogue/ark-pixel-10px-proportional-zh_cn SDF.asset.meta
