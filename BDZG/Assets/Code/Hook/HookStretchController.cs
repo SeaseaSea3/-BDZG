@@ -116,6 +116,19 @@ public class HookStretchController : MonoBehaviour
 
         hookHead.DOPunchScale(Vector3.one * 0.3f, 0.3f, 5);
 
+        DOVirtual.DelayedCall(1f, () =>
+        {
+            MiniGameFinish finish = FindObjectOfType<MiniGameFinish>();
+
+            if (finish != null)
+            {
+                finish.FinishMiniGame();
+            }
+            else
+            {
+                Debug.LogError("场景中没有 MiniGameFinish，无法完成小游戏跳转！");
+            }
+        });
     }
 
     void StopWholeGame()
