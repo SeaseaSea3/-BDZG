@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53f862c9a8ecbae41b937148a196bae1, type: 3}
+  m_Name: 111
+  m_EditorClassIdentifier: 
+  displayName: "\u4E11\u732B"
+  address: "\u5927\u708E"
+  phoneNumber: 11-11
+  listIcon: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
+  defaultStartNode: {fileID: 11400000, guid: 56dba5bf54a2cac4eb75a3b0b7f7b16c, type: 2}
