@@ -192,27 +192,6 @@ public class ScannerToolController : MonoBehaviour, IBeginDragHandler, IDragHand
 
         ToolData currentTool = tools[currentToolIndex];
 
-        if (TreatmentGameManager.Instance == null)
-        {
-            Debug.LogError("没有找到 TreatmentGameManager！");
-            return;
-        }
-
-        int miniGameId = currentTool.miniGameId;
-
-        if (!TreatmentGameManager.Instance.IsRequiredMiniGame(miniGameId))
-        {
-            Debug.Log("这个工具不是当前病人需要的工具，扣血");
-
-            TreatmentGameManager.Instance.Damage(10f);
-            return;
-        }
-
-        if (TreatmentGameManager.Instance.IsMiniGameCompleted(miniGameId))
-        {
-            Debug.Log("这个小游戏已经完成过了，请选择其他工具");
-            return;
-        }
 
         if (string.IsNullOrEmpty(currentTool.sceneName))
         {
